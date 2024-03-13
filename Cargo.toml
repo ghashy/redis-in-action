@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "fake-web-retailer",
+    "feed",
 ]
 resolver = "2"
 
