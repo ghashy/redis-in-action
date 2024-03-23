@@ -1,0 +1,6 @@
+[book]
+authors = ["ghashy"]
+language = "en"
+multilingual = false
+src = "src"
+title = "redis-in-action-doc"

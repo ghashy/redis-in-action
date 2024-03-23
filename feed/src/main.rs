@@ -20,9 +20,10 @@ const ONE_WEEK_IN_SECONDS: i64 = SECONDS_IN_DAY * 7;
 async fn main() {
     let client = init_redis_client().await;
 
-    // post_article(&client, "otheruser", "otherarticle", "yandex.ru/article122")
+    // post_article(&client, "johhn", "cats-of-world", "google.com/kittens120")
     //     .await
     //     .unwrap();
+    // add_remove_groups(&client, 2, &["programming"], &[]).await.unwrap();
     // for i in 11..100 {
     //     article_voting(&client, &format!("user:{i}"), "article:1")
     //         .await
@@ -34,6 +35,8 @@ async fn main() {
     dbg!(articles);
 }
 
+/// This function posts a new article, adds hset with article information,
+/// then add article to the `time:` and `score` zsets.
 async fn post_article(
     client: &RedisClient,
     user: &str,
@@ -41,7 +44,7 @@ async fn post_article(
     link: &str,
 ) -> Result<u32, RedisError> {
     let article_id = client.incr::<u32, _>("article:").await?;
-    let voted = format!("voted:{article_id}");
+    let voted = format!("upvoted:{article_id}");
     client.sadd(&voted, user).await?;
     client.expire::<(), _>(voted, ONE_WEEK_IN_SECONDS).await?;
 
@@ -55,7 +58,7 @@ async fn post_article(
                 ("link", link),
                 ("author", user),
                 ("time", &now.to_string()),
-                ("votes", "1"),
+                ("upvotes", "1"),
                 ("downvotes", "0"),
             ],
         )
@@ -77,11 +80,12 @@ async fn post_article(
     Ok(article_id)
 }
 
+/// Add or remove groups
 async fn add_remove_groups(
     client: &RedisClient,
     article_id: usize,
-    to_add: Vec<&str>,
-    to_remove: Vec<&str>,
+    to_add: &[&str],
+    to_remove: &[&str],
 ) -> Result<(), RedisError> {
     let article = format!("article:{article_id}");
     for group in to_add.into_iter() {
@@ -95,6 +99,8 @@ async fn add_remove_groups(
     Ok(())
 }
 
+/// This function caches articles of the same group in the
+/// `score:{group_name}` zset for 1 minute.
 async fn get_group_articles_by_score(
     client: &RedisClient,
     group: &str,
@@ -117,10 +123,12 @@ async fn get_group_articles_by_score(
     get_article_order_by_score(client, page, &destination).await
 }
 
+/// This function fetches articles info ordered by score, using
+/// temporary zset `score:{group_name}`, and each article's hset.
 async fn get_article_order_by_score(
     client: &RedisClient,
     page: i64,
-    key: &str,
+    zset_key: &str,
 ) -> Result<Vec<HashMap<String, String>>, RedisError> {
     type ArticleKey = String;
     type ArticleScore = i64;
@@ -130,11 +138,15 @@ async fn get_article_order_by_score(
     let start = (page - 1) * ARTICLES_PER_PAGE;
     let end = start + ARTICLES_PER_PAGE - 1;
 
-    // We use vec here to perserve order
+    // Use vec here to perserve order
+    // We get article scores and keys from given temporary zset.
     let ids = client
-        .zrevrange::<Vec<(ArticleKey, ArticleScore)>, _>(key, start, end, true)
+        .zrevrange::<Vec<(ArticleKey, ArticleScore)>, _>(
+            zset_key, start, end, true,
+        )
         .await?;
 
+    // Fetch all articles data, one afther one
     let mut articles = Vec::new();
     for (key, _score) in ids.into_iter() {
         let mut article_data =
@@ -145,6 +157,9 @@ async fn get_article_order_by_score(
     Ok(articles)
 }
 
+/// Vote for certain article
+/// We can add vote if there are no vote for given user
+/// or change vote from upvote -> downvote or downvote -> upvote.
 async fn article_vote(
     client: &RedisClient,
     user: &str,
@@ -165,6 +180,7 @@ async fn article_vote(
     // Get current vote status
     // That expression returns 1 if inserted or 0 if not
     // So we got 1 if there are no given user voted for that article
+    // `true` here is upvote and `false` is downvote
     let current = if client
         .sismember(format!("upvoted:{article_id}"), user)
         .await?
@@ -224,6 +240,8 @@ async fn article_vote(
 
     Ok(())
 }
+
+// ───── Helpers ──────────────────────────────────────────────────────────── //
 
 fn get_sys_time_in_secs() -> u64 {
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
