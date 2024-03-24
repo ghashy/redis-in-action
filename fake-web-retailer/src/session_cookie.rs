@@ -1,6 +1,8 @@
 use fred::clients::RedisClient;
 use fred::error::RedisError;
-use fred::interfaces::{HashesInterface, KeysInterface, SortedSetsInterface};
+use fred::interfaces::{
+    HashesInterface, KeysInterface, ListInterface, SortedSetsInterface,
+};
 
 use crate::get_sys_time_in_secs;
 
@@ -39,18 +41,21 @@ async fn update_token(
         .await?;
     if let Some(item) = item {
         // Record that the user viewed the item.
-        client
-            .zadd(
-                format!("viewed:{}", token),
-                None,
-                None,
-                false,
-                false,
-                vec![(timestamp as f64, item)],
-            )
-            .await?;
+        let recently_viewed_items = format!("viewed:{}", token);
+        // ↓ REPLACED: client
+        //     .zadd(
+        //         &recently_viewed_items,
+        //         None,
+        //         None,
+        //         false,
+        //         false,
+        //         vec![(timestamp as f64, item)],
+        //     )
+        //     .await?;
+        client.lpush(&recently_viewed_items, item).await?;
         // Remove old items, keeping the most recent 25.
-        client.zremrangebyrank(format!("viewed:{}", token), 0, -26).await?;
+        // ↓ REPLACED: client.zremrangebyrank(format!("viewed:{}", token), 0, -26).await?;
+        client.lrange(recently_viewed_items, 0, 26).await?;
         // With this one line added, we now have a record of all of the items that are viewed.
         // Even more useful, that list of items is ordered by the number of times that people
         // have seen the items, with the most-viewed item having the lowest score, and thus having an index of 0.
