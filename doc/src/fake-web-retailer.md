@@ -22,10 +22,10 @@ We use here `&` symbol as delimiter between zset score and value.
 
 ## Web page caching block
 
-| Name                           | Type       | Key                      | Expiration |
-| ------------------------------ | ---------- | ------------------------ | ---------- |
-| [Web page](#web-page)          | **String** | `cache:{html_page_hash}` | No         |
-| [Viewed paages](#viewed-pages) | **ZSet**   | `viewed:`                | No         |
+| Name                           | Type               | Key                      | Expiration |
+| ------------------------------ | ------------------ | ------------------------ | ---------- |
+| [Web page](#web-page)          | **String(string)** | `cache:{html_page_hash}` | No         |
+| [Viewed paages](#viewed-pages) | **ZSet**           | `viewed:`                | No         |
 
 > **ZSET** KEY: "viewed:"
 
