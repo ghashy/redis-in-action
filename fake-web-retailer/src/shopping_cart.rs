@@ -4,11 +4,11 @@ use fred::interfaces::HashesInterface;
 
 async fn add_to_cart(
     client: &RedisClient,
-    /*token*/ session: &str,
+    session_token: &str,
     item: &str,
     count: u64,
 ) -> Result<(), RedisError> {
-    let key = format!("cart:{}", session);
+    let key = format!("cart:{}", session_token);
     if count <= 0 {
         client.hdel(key, item).await?;
     } else {

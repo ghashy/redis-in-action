@@ -1,6 +1,6 @@
 # Feed schema
 
-We use here `&` symbol delimiter between zset score and value.
+We use here `&` symbol as delimiter between zset score and value.
 
 ## Articles block
 
@@ -11,7 +11,7 @@ We use here `&` symbol delimiter between zset score and value.
 | [Articles, time-ordered](#articles-time-ordered)                        | **ZSet**   | `time:`              | No         |
 | [Articles, item-score-ordered](#articles-item-score-ordered)            | **ZSet**   | `score:`             | No         |
 | [Article votes](#article-votes)                                         | **Set**    | `upvoted:123123`     | No         |
-| [Same]                                                                  | **Set**    | `downvoted:123123`   | No         |
+| `Same`                                                                  | **Set**    | `downvoted:123123`   | No         |
 | [Article groups](#article-groups)                                       | **Set**    | `group:{group_name}` | No         |
 | [Group of articles sorted by score](#group-of-articles-sorted-by-score) | **ZSet**   | `score:{group_name}` | 1 min      |
 

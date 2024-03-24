@@ -11,6 +11,11 @@ async fn check_token(
     client.hget("login:", token).await
 }
 
+/// If user perform any request, we should update user's token,
+/// this functions updates token-was-used request timestamp to `now`
+/// and if user viewed some item, we store that item in
+/// `viewed:{uuid_user_token}` zset with timestamp when it was seen.
+/// We keep that zset size within bound of 0..25
 async fn update_token(
     client: &RedisClient,
     token: &str,
@@ -48,17 +53,22 @@ async fn update_token(
         client.zremrangebyrank(format!("viewed:{}", token), 0, -26).await?;
         // With this one line added, we now have a record of all of the items that are viewed.
         // Even more useful, that list of items is ordered by the number of times that people
-        // have seen the items, with the most-viewed item having the lowest score, and thus hav- ing an index of 0.
+        // have seen the items, with the most-viewed item having the lowest score, and thus having an index of 0.
         client.zincrby("viewed:", -1.0, item).await?;
     }
     Ok(())
 }
 
+/// This task should run every `some_amount` period of time in background.
+/// We’ll only keep the most recent 10 million sessions, so we track sessions
+/// in the `recent:` zset. If there are more sessions than in `LIMIT`, we delete
+/// first N sessions (oldest) fron that zset, remove them from
+/// `viewed:{uuid_session_token}` zset, and from `login:` HASH.
 async fn clean_sessions_task(client: &RedisClient) -> Result<(), RedisError> {
     static LIMIT: i64 = 10000000;
 
     loop {
-        // Find out how many tokens are known.
+        // Find out how many tokens are known (cardinality).
         let size: i64 = client.zcard("recent:").await?;
         if size <= LIMIT {
             return Ok(());

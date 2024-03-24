@@ -4,3 +4,10 @@ language = "en"
 multilingual = false
 src = "src"
 title = "redis-in-action-doc"
+
+[output.html.playground]
+editable = false         # allows editing the source code
+copyable = false         # include the copy button for copying code snippets
+copy-js = false          # includes the JavaScript for the code editor
+line-numbers = false     # displays line numbers for editable code
+runnable = false   
