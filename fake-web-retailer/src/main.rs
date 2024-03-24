@@ -8,6 +8,8 @@ use fred::interfaces::{
 };
 use fred::types::RedisConfig;
 
+use fake_web_retailer::init_redis_client;
+
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
     let client = init_redis_client().await;

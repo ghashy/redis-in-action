@@ -4,30 +4,27 @@ We use here `&` symbol as delimiter between zset score and value.
 
 ## Shopping cart cookies block
 
-| Name                                    | Type     | Key                           | Expiration |
-| --------------------------------------- | -------- | ----------------------------- | ---------- |
-| [Hash with cookies](#hash-with-cookies) | **HASH** | `login:`                      | No         |
-| [Recent](#recent)                       | **ZSet** | `recent:`                     | No         |
-| [User viewed items](#user-viewed-items) | **ZSet** | `viewed:{uuid_session_token}` | No         |
-| [Popular items](#popular-items)         | **ZSet** | `viewed:`                     | No         |
-| [Quantity](#quantity)                   | **HASH** | `cart:{uuid_session_token}`   | No         |
+| Name                                            | Type     | Key                           | Expiration | Module                                                                 |
+| ----------------------------------------------- | -------- | ----------------------------- | ---------- | ---------------------------------------------------------------------- |
+| [Hash with cookies](#hash-with-cookies)         | **HASH** | `login:`                      | No         | `crate::session_cookie`                                                |
+| [Recently used tokens](#recently-used-tokens)   | **ZSet** | `recent:`                     | No         | `crate::session_cookie`                                                |
+| [Recently viewed items](#recently-viewed-items) | **ZSet** | `viewed:{uuid_session_token}` | No         | `crate::session_cookie`                                                |
+| [Popular items](#popular-items)                 | **ZSet** | `viewed:`                     | No         | `crate::session_cookie`, `crate::analytics`, `crate::web_page_caching` |
+| [Quantity](#quantity)                           | **HASH** | `cart:{uuid_session_token}`   | No         | `crate::session_cookie`, `crate::shopping_cart`                        |
 
 ## Database rows cache block
 
-| Name                            | Type             | Key            | Expiration |
-| ------------------------------- | ---------------- | -------------- | ---------- |
-| [Database rows](#database-rows) | **String(json)** | `inv:{row_id}` | No         |
-| [Schedule](#schedule)           | **ZSet**         | `schedule:`    | No         |
-| [Delay](#delay)                 | **ZSet**         | `delay:`       | No         |
+| Name                            | Type             | Key            | Expiration | Module                      |
+| ------------------------------- | ---------------- | -------------- | ---------- | --------------------------- |
+| [Database rows](#database-rows) | **String(json)** | `inv:{row_id}` | No         | `crate::database_row_cache` |
+| [Schedule](#schedule)           | **ZSet**         | `schedule:`    | No         | `crate::database_row_cache` |
+| [Delay](#delay)                 | **ZSet**         | `delay:`       | No         | `crate::database_row_cache` |
 
 ## Web page caching block
 
-| Name                           | Type               | Key                      | Expiration |
-| ------------------------------ | ------------------ | ------------------------ | ---------- |
-| [Web page](#web-page)          | **String(string)** | `cache:{html_page_hash}` | No         |
-| [Viewed paages](#viewed-pages) | **ZSet**           | `viewed:`                | No         |
-
-> **ZSET** KEY: "viewed:"
+| Name                  | Type               | Key                      | Expiration | Module                    |
+| --------------------- | ------------------ | ------------------------ | ---------- | ------------------------- |
+| [Web page](#web-page) | **String(string)** | `cache:{html_page_hash}` | No         | `crate::web_page_caching` |
 
 ### Hash with cookies
 
@@ -38,7 +35,7 @@ These are cookies, hash with pairs `token: user`, body example:
 "{uuid_session_token}": "{goodboy1}"
 ```
 
-### Recent
+### Recently used tokens
 
 Stores timestamp when the token was last used to perform requests, body example:
 
@@ -47,7 +44,7 @@ Stores timestamp when the token was last used to perform requests, body example:
 "{123123123}" & "{uuid_session_token}"
 ```
 
-### User viewed items
+### Recently viewed items
 
 Records which user(uuid_user_token) seen which item, body example:
 
@@ -62,7 +59,7 @@ Records which item is the most popular. The most popular with the lowest score
 We use that negative scale here to keep the most popular at the beginning of the zset, body example:
 
 ```json
-"{score}" & "{item1}"
+"{rating_score}" & "{item1}"
 "-23.0"   & "{item2}"
 "-1.0"    & "{item3}"
 ```
