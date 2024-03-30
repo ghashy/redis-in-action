@@ -3,11 +3,11 @@
 
 use std::{collections::HashMap, time::SystemTime};
 
-use fred::clients::RedisClient;
+use fred::clients::{RedisClient, Transaction};
 use fred::error::RedisError;
 use fred::interfaces::{
     ClientLike, HashesInterface, KeysInterface, SetsInterface,
-    SortedSetsInterface,
+    SortedSetsInterface, TransactionInterface,
 };
 use fred::types::RedisConfig;
 
@@ -30,8 +30,9 @@ async fn main() {
     //         .unwrap();
     // }
     // let articles = get_article_order_by_score(&client, 1).await.unwrap();
-    let articles =
-        get_group_articles_by_score(&client, "programming", 1).await.unwrap();
+    let articles = get_group_articles_by_score(&client, "programming", 1)
+        .await
+        .unwrap();
     dbg!(articles);
 }
 
@@ -89,11 +90,15 @@ async fn add_remove_groups(
 ) -> Result<(), RedisError> {
     let article = format!("article:{article_id}");
     for group in to_add.into_iter() {
-        client.sadd::<(), _, _>(format!("group:{group}"), &article).await?;
+        client
+            .sadd::<(), _, _>(format!("group:{group}"), &article)
+            .await?;
     }
 
     for group in to_remove.into_iter() {
-        client.srem::<(), _, _>(format!("group:{group}"), &article).await?;
+        client
+            .srem::<(), _, _>(format!("group:{group}"), &article)
+            .await?;
     }
 
     Ok(())
@@ -101,15 +106,19 @@ async fn add_remove_groups(
 
 /// This function caches articles of the same group in the
 /// `score:{group_name}` zset for 1 minute.
+/// And returns these articles using `get_articles_ordered_by_score`
 async fn get_group_articles_by_score(
     client: &RedisClient,
     group: &str,
     page: i64,
 ) -> Result<Vec<HashMap<String, String>>, RedisError> {
     let destination = format!("score:{}", group);
+    let multi = client.multi();
 
-    if !client.exists(&destination).await? {
-        client
+    // Check is there temporary zset of articles
+    if !multi.exists(&destination).await? {
+        // If no, create new
+        multi
             .zinterstore(
                 &destination,
                 &[format!("group:{}", group), "score:".to_string()],
@@ -117,16 +126,16 @@ async fn get_group_articles_by_score(
                 Some(fred::types::AggregateOptions::Max),
             )
             .await?;
-        client.expire(&destination, 60).await?;
+        multi.expire(&destination, 60).await?;
     }
 
-    get_article_order_by_score(client, page, &destination).await
+    get_articles_ordered_by_score(&multi, page, &destination).await
 }
 
 /// This function fetches articles info ordered by score, using
 /// temporary zset `score:{group_name}`, and each article's hset.
-async fn get_article_order_by_score(
-    client: &RedisClient,
+async fn get_articles_ordered_by_score(
+    multi: &Transaction,
     page: i64,
     zset_key: &str,
 ) -> Result<Vec<HashMap<String, String>>, RedisError> {
@@ -140,7 +149,7 @@ async fn get_article_order_by_score(
 
     // Use vec here to perserve order
     // We get article scores and keys from given temporary zset.
-    let ids = client
+    let ids = multi
         .zrevrange::<Vec<(ArticleKey, ArticleScore)>, _>(
             zset_key, start, end, true,
         )
@@ -150,7 +159,7 @@ async fn get_article_order_by_score(
     let mut articles = Vec::new();
     for (key, _score) in ids.into_iter() {
         let mut article_data =
-            client.hgetall::<HashMap<String, String>, _>(&key).await?;
+            multi.hgetall::<HashMap<String, String>, _>(&key).await?;
         article_data.insert("id".to_string(), key);
         articles.push(article_data);
     }
@@ -166,27 +175,33 @@ async fn article_vote(
     article: &str,
     is_upvote: bool,
 ) -> Result<(), RedisError> {
-    let cutoff = get_sys_time_in_secs() - ONE_WEEK_IN_SECONDS as u64;
+    let week_ago = get_sys_time_in_secs() - ONE_WEEK_IN_SECONDS as u64;
 
     // Check that article was not created too many time ago
-    let zscore = client.zscore::<u64, _, _>("time:", article).await.unwrap();
-    if zscore < cutoff {
+    let timestamp = client.zscore::<u64, _, _>("time:", article).await.unwrap();
+    if timestamp < week_ago {
         return Ok(());
     }
 
     // Get article id
     let article_id = article.split_terminator(':').skip(1).next().unwrap();
 
+    let multi = client.multi();
+
     // Get current vote status
     // That expression returns 1 if inserted or 0 if not
-    // So we got 1 if there are no given user voted for that article
-    // `true` here is upvote and `false` is downvote
-    let current = if client
+    // * `true` here is upvote
+    // * `false` is downvote
+    // * `None` means no any vote
+    let current = if multi
         .sismember(format!("upvoted:{article_id}"), user)
         .await?
     {
         Some(true)
-    } else if client.sismember(format!("downvoted:{article_id}"), user).await? {
+    } else if multi
+        .sismember(format!("downvoted:{article_id}"), user)
+        .await?
+    {
         Some(false)
     } else {
         None
@@ -207,7 +222,7 @@ async fn article_vote(
                     ("upvoted", "downvoted", -1, 1, RATIO as f64 * 2.)
                 };
 
-            client
+            multi
                 .smove(
                     format!("{}:{}", from, article_id),
                     format!("{}:{}", to, article_id),
@@ -215,13 +230,15 @@ async fn article_vote(
                 )
                 .await?;
 
-            client
+            multi
                 .hincrby::<(), _, _>(article, "upvotes", upvote_count_diff)
                 .await?;
-            client
+            multi
                 .hincrby::<(), _, _>(article, "downvotes", downvote_count_diff)
                 .await?;
-            client.zincrby::<(), _, _>("score:", score_diff, article).await?;
+            multi
+                .zincrby::<(), _, _>("score:", score_diff, article)
+                .await?;
         }
 
         // Add vote
@@ -232,11 +249,12 @@ async fn article_vote(
                 ("downvoted", -RATIO as f64)
             };
             let _: bool =
-                client.sadd(format!("{key}:{article_id}"), user).await?;
-            let () = client.zincrby("score:", ratio, article).await?;
-            let () = client.hincrby(article, key, 1).await?;
+                multi.sadd(format!("{key}:{article_id}"), user).await?;
+            let () = multi.zincrby("score:", ratio, article).await?;
+            let () = multi.hincrby(article, key, 1).await?;
         }
     }
+    multi.exec(true).await?;
 
     Ok(())
 }
