@@ -42,19 +42,8 @@ async fn update_token(
     if let Some(item) = item {
         // Record that the user viewed the item.
         let recently_viewed_items = format!("viewed:{}", token);
-        // ↓ REPLACED: client
-        //     .zadd(
-        //         &recently_viewed_items,
-        //         None,
-        //         None,
-        //         false,
-        //         false,
-        //         vec![(timestamp as f64, item)],
-        //     )
-        //     .await?;
         client.lpush(&recently_viewed_items, item).await?;
         // Remove old items, keeping the most recent 25.
-        // ↓ REPLACED: client.zremrangebyrank(format!("viewed:{}", token), 0, -26).await?;
         client.lrange(recently_viewed_items, 0, 26).await?;
         // With this one line added, we now have a record of all of the items that are viewed.
         // Even more useful, that list of items is ordered by the number of times that people

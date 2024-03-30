@@ -42,8 +42,8 @@ These are cookies, hash with pairs `token: user`, body example:
 Stores timestamp when the token was last used to perform requests, body example:
 
 ```json
-"{timestamp}" & "{uuid_session_token}"
-"{123123123}" & "{uuid_session_token}"
+"{unix_timestamp}"  & "{uuid_session_token}"
+"1711794081.470433" & "{uuid_session_token}"
 ```
 
 ### Recently viewed items
@@ -89,8 +89,8 @@ Row ID from the db row as the member of the ZSET. Scores is timestamp,
 when the row should be copied to Redis next, body example:
 
 ```json
-"{timestamp}"             & "{row_id}"
-"123123123.123_timestamp" & "237_row_id"
+"{unix_timestamp}"  & "{row_id}"
+"1711794081.470433" & "237_row_id"
 ```
 
 ### Delay
