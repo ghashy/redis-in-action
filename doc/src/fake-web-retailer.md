@@ -1,6 +1,8 @@
 # Schema
 
-We use here `&` symbol as delimiter between zset score and value.
+> We use here `&` symbol as delimiter between zset score and value.
+
+> We use here `->` symbol as delimiter between list elements.
 
 ## Shopping cart cookies block
 
@@ -8,7 +10,7 @@ We use here `&` symbol as delimiter between zset score and value.
 | ----------------------------------------------- | -------- | ----------------------------- | ---------- | ---------------------------------------------------------------------- |
 | [Hash with cookies](#hash-with-cookies)         | **HASH** | `login:`                      | No         | `crate::session_cookie`                                                |
 | [Recently used tokens](#recently-used-tokens)   | **ZSet** | `recent:`                     | No         | `crate::session_cookie`                                                |
-| [Recently viewed items](#recently-viewed-items) | **ZSet** | `viewed:{uuid_session_token}` | No         | `crate::session_cookie`                                                |
+| [Recently viewed items](#recently-viewed-items) | **List** | `viewed:{uuid_session_token}` | No         | `crate::session_cookie`                                                |
 | [Popular items](#popular-items)                 | **ZSet** | `viewed:`                     | No         | `crate::session_cookie`, `crate::analytics`, `crate::web_page_caching` |
 | [Quantity](#quantity)                           | **HASH** | `cart:{uuid_session_token}`   | No         | `crate::session_cookie`, `crate::shopping_cart`                        |
 
@@ -49,8 +51,7 @@ Stores timestamp when the token was last used to perform requests, body example:
 Records which user(uuid_user_token) seen which item, body example:
 
 ```json
-"{timestamp}" & "{item1}"
-"{123123231}" & "{item2}"
+"{item1}" ->  "{item2}"
 ```
 
 ### Popular items

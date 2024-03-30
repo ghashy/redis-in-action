@@ -16,7 +16,7 @@ async fn check_token(
 /// If user perform any request, we should update user's token,
 /// this functions updates token-was-used request timestamp to `now`
 /// and if user viewed some item, we store that item in
-/// `viewed:{uuid_user_token}` zset with timestamp when it was seen.
+/// `viewed:{uuid_user_token}` list.
 /// We keep that zset size within bound of 0..25
 async fn update_token(
     client: &RedisClient,
