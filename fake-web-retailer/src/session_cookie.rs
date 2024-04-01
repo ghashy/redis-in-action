@@ -19,7 +19,7 @@ async fn check_token(
 /// `viewed:{uuid_user_token}` list.
 /// We keep that zset size within bound of 0..25
 async fn update_token(
-    client: &RedisClient,
+    client: RedisClient, // Use owned value for benchmark
     token: &str,
     user: &str,
     item: Option<&str>,
@@ -96,5 +96,95 @@ async fn clean_sessions_task(client: &RedisClient) -> Result<(), RedisError> {
         let () = client.del(session_keys).await?;
         let () = client.hdel("login:", tokens.clone()).await?;
         let () = client.zrem("recent:", tokens).await?;
+    }
+}
+
+#[cfg(test)]
+mod benchmark {
+    use std::{future::Future, pin::Pin};
+
+    use super::*;
+    use crate::init_redis_client;
+
+    type UpdateTokenFn = Box<
+        dyn Fn(
+            RedisClient,
+            &'static str,
+            &'static str,
+            Option<&'static str>,
+        )
+            -> Pin<Box<dyn Future<Output = Result<(), RedisError>>>>,
+    >;
+
+    async fn update_token_old_version(
+        client: RedisClient,
+        token: &str,
+        user: &str,
+        item: Option<&str>,
+    ) -> Result<(), RedisError> {
+        let timestamp = get_sys_time_in_secs();
+        client.hset("login:", vec![(token, user)]).await?;
+        client
+            .zadd(
+                "recent:",
+                None,
+                None,
+                false,
+                false,
+                vec![(timestamp as f64, token)],
+            )
+            .await?;
+        if let Some(item) = item {
+            let recently_viewed_items = format!("viewed:{}", token);
+            client.lpush(&recently_viewed_items, item).await?;
+            client.lrange(recently_viewed_items, 0, 26).await?;
+            client.zincrby("viewed:", -1.0, item).await?;
+        }
+        Ok(())
+    }
+
+    fn force_boxed<F, R>(f: F) -> UpdateTokenFn
+    where
+        F: Fn(
+                RedisClient,
+                &'static str,
+                &'static str,
+                Option<&'static str>,
+            ) -> R
+            + 'static,
+        R: Future<Output = Result<(), RedisError>> + 'static,
+    {
+        Box::new(move |c, t, u, i| Box::pin(f(c, t, u, i)))
+    }
+
+    #[tokio::test]
+    async fn benchmark_update_token() {
+        let client = init_redis_client().await;
+        let duration = 5;
+        // On mac m1 with localhost and docker
+        // 0: count: 25297, delta: 5, count/delta: 5059
+        // 1: count: 11335, delta: 5, count/delta: 2267
+        for (i, f) in vec![
+            force_boxed(update_token),
+            force_boxed(update_token_old_version),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let mut count = 0;
+            let start = get_sys_time_in_secs();
+            let end = start + duration;
+            while get_sys_time_in_secs() < end {
+                count += 1;
+                let _ = f(client.clone(), "token", "user", Some("item")).await;
+            }
+            let delta = get_sys_time_in_secs() - start;
+            println!(
+                "{i}: count: {}, delta: {}, count/delta: {}",
+                count,
+                delta,
+                count / delta
+            );
+        }
     }
 }
