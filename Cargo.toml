@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "fake-game-company",
     "fake-web-retailer",
     "feed",
 ]

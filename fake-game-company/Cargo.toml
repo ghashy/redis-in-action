@@ -1,0 +1,8 @@
+[package]
+name = "fake-game-company"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = "1.37.0"
+fred = "8.0.5"

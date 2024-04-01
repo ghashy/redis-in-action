@@ -132,6 +132,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11157ac094ffbdde99aa67b23417ebdd801842852b500e395a45a9c0aac03e4a"
 
 [[package]]
+name = "fake-game-company"
+version = "0.1.0"
+dependencies = [
+ "fred",
+ "tokio",
+]
+
+[[package]]
 name = "fake-web-retailer"
 version = "0.1.0"
 dependencies = [
@@ -168,9 +176,9 @@ dependencies = [
 
 [[package]]
 name = "fred"
-version = "8.0.4"
+version = "8.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b4eaa3196a62b31b5c6830563e063562e6280af38f06f72456e6e1e8264e3cb"
+checksum = "9fcd11eb1309e72c6b23317309fe247f560da4e258364104f4e1a6821b381d77"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -179,7 +187,6 @@ dependencies = [
  "crossbeam-queue",
  "float-cmp",
  "futures",
- "lazy_static",
  "log",
  "parking_lot",
  "rand",
@@ -314,12 +321,6 @@ dependencies = [
  "unicode-bidi",
  "unicode-normalization",
 ]
-
-[[package]]
-name = "lazy_static"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
@@ -659,9 +660,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.36.0"
+version = "1.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61285f6515fa018fb2d1e46eb21223fff441ee8db5d0f1435e8ab4f5cdb80931"
+checksum = "1adbebffeca75fcfd058afa480fb6c0b81e165a0323f9c9d39c9697e37c46787"
 dependencies = [
  "backtrace",
  "libc",
