@@ -351,15 +351,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 
 [[package]]
-name = "logging"
-version = "0.1.0"
-dependencies = [
- "fred",
- "time",
- "tokio",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -626,6 +617,15 @@ checksum = "05ffd9c0a93b7543e062e759284fcf5f5e3b098501104bfbdde4d404db792871"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "support"
+version = "0.1.0"
+dependencies = [
+ "fred",
+ "time",
+ "tokio",
 ]
 
 [[package]]

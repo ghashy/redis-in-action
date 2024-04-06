@@ -2,7 +2,8 @@
 members = [
     "fake-game-company",
     "fake-web-retailer",
-    "feed", "logging",
+    "feed",
+    "support"
 ]
 resolver = "2"
 

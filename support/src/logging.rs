@@ -1,14 +1,12 @@
-use std::time::SystemTime;
-use time::{macros::time, Time};
+use crate::get_sys_time_in_secs;
+use time::Time;
 
 use fred::{
     clients::{RedisClient, Transaction},
     error::RedisError,
     interfaces::{
-        ClientLike, KeysInterface, ListInterface, SortedSetsInterface,
-        TransactionInterface,
+        KeysInterface, ListInterface, SortedSetsInterface, TransactionInterface,
     },
-    types::RedisConfig,
 };
 use time::OffsetDateTime;
 
@@ -31,11 +29,6 @@ impl std::fmt::Display for Severity {
             Severity::Critical => f.write_str("Critical"),
         }
     }
-}
-
-#[tokio::main(flavor = "multi_thread")]
-async fn main() {
-    let client = init_redis_client().await;
 }
 
 async fn log_recent(
@@ -103,23 +96,6 @@ async fn log_common(
 }
 
 // ───── Helpers ──────────────────────────────────────────────────────────── //
-
-fn get_sys_time_in_secs() -> u64 {
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-    }
-}
-
-async fn init_redis_client() -> RedisClient {
-    let config = RedisConfig::from_url_centralized(
-        "redis://:ghashy@myredis.orb.local:6379",
-    )
-    .unwrap();
-    let client = RedisClient::new(config, None, None, None);
-    let _ = client.init().await.unwrap();
-    client
-}
 
 fn formatted_datetime(timestamp: OffsetDateTime) -> String {
     timestamp
