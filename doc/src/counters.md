@@ -28,6 +28,9 @@ A Hash that shows the number of web page hits over 5-second time slices around 7
 ### ZSet with some known counters
 
 When scores are equal as they are in this ZSET, Redis sorts by member name.
+By setting all scores to 0 in a ZSET, Redis will try to sort by score, and
+finding them all equal, will then sort by member name. This gives us a fixed
+order for a given set of members, which will make it easy to sequentially scan them.
 
 ```json
 "0" & "1:hits"

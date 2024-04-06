@@ -16,6 +16,7 @@ use time::Time;
 /// 5 seconds, 1 minute, 5 minutes, 1 hour, 5 hours, 1 day.
 const PRECISION: [i64; 7] = [1, 5, 60, 300, 3600, 18000, 86400];
 
+/// This function updates all counters with all precisions
 async fn update_counter(
     client: &RedisClient,
     name: &str,
@@ -42,6 +43,7 @@ async fn update_counter(
     Ok(())
 }
 
+/// Get all counters with all precisions
 async fn get_counter(
     client: &RedisClient,
     name: &str,
