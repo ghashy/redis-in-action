@@ -2,6 +2,7 @@ use std::time::SystemTime;
 
 use fred::{clients::RedisClient, interfaces::ClientLike, types::RedisConfig};
 
+mod counters;
 mod logging;
 
 #[tokio::main(flavor = "multi_thread")]
