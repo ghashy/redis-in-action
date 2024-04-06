@@ -17,7 +17,7 @@ We use here `&` symbol as delimiter between zset score and value.
 
 ### Articles count
 
-Stores count of articles (or last index), body example:
+Stores count of articles (or last index).
 
 ```json
 10
@@ -25,7 +25,7 @@ Stores count of articles (or last index), body example:
 
 ### Articles
 
-Article content, body example:
+Article content.
 
 ```json
 title: "title"
@@ -37,7 +37,7 @@ votes: "123"
 
 ### Articles, time-ordered
 
-Sorted set of articles, ordered by time being posted, body example:
+Sorted set of articles, ordered by time being posted.
 
 ```json
 "123123.123 & article:{article_id}"
@@ -45,7 +45,7 @@ Sorted set of articles, ordered by time being posted, body example:
 
 ### Articles, item-score-ordered
 
-Sorted set of articles, ordered by item scores, body example:
+Sorted set of articles, ordered by item scores.
 
 ```json
 "123123.123" & "article:{article_id}"
@@ -53,7 +53,7 @@ Sorted set of articles, ordered by item scores, body example:
 
 ### Article votes
 
-Set with info who have voted for article, body example:
+Set with info who have voted for article.
 
 ```json
 "user:123123"
@@ -61,7 +61,7 @@ Set with info who have voted for article, body example:
 
 ### Article groups
 
-Groups with articles (sets), body example:
+Groups with articles (sets).
 
 ```json
 "article:{article_id}"
@@ -70,7 +70,7 @@ Groups with articles (sets), body example:
 ### Group of articles sorted by score
 
 Intersections of sorted by score set of articles and group, from that we got
-sorted articles of certain group, body example:
+sorted articles of certain group.
 
 ```json
 "article:{article_id}"

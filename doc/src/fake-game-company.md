@@ -31,7 +31,7 @@ A user’s inventory that holds unique identifiers for each item.
 
 ### Market
 
-Market with goods and their prices
+Market with goods and their prices.
 
 ```json
 "{item_price}" & "{item_name}.{user_id}"

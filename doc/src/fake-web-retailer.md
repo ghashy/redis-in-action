@@ -30,7 +30,7 @@
 
 ### Hash with cookies
 
-These are cookies, hash with pairs `token: user`, body example:
+These are cookies, hash with pairs `token: user`.
 
 ```json
 "{uuid_session_token}": "{username}"
@@ -39,7 +39,7 @@ These are cookies, hash with pairs `token: user`, body example:
 
 ### Recently used tokens
 
-Stores timestamp when the token was last used to perform requests, body example:
+Stores timestamp when the token was last used to perform requests.
 
 ```json
 "{unix_timestamp}"  & "{uuid_session_token}"
@@ -48,7 +48,7 @@ Stores timestamp when the token was last used to perform requests, body example:
 
 ### Recently viewed items
 
-Records which user(uuid_user_token) seen which item, body example:
+Records which user(uuid_user_token) seen which item.
 
 ```json
 "{item1}" ->  "{item2}"
@@ -57,7 +57,7 @@ Records which user(uuid_user_token) seen which item, body example:
 ### Popular items
 
 Records which item is the most popular. The most popular with the lowest score
-We use that negative scale here to keep the most popular at the beginning of the zset, body example:
+We use that negative scale here to keep the most popular at the beginning of the zset.
 
 ```json
 "{rating_score}" & "{item1}"
@@ -67,7 +67,7 @@ We use that negative scale here to keep the most popular at the beginning of the
 
 ### Quantity
 
-That maps an item ID to the quantity of that item, that the customer would like to purchase, body example:
+That maps an item ID to the quantity of that item, that the customer would like to purchase.
 
 ```json
 "{item}": "{quantity}"
@@ -77,7 +77,7 @@ That maps an item ID to the quantity of that item, that the customer would like 
 
 ### Database rows
 
-Cached database row for an item to be sold online in JSON format, body example:
+Cached database row for an item to be sold online in JSON format.
 
 ```json
 { "qty": 629, "name": "GTab 7inch", "description": "..." }
@@ -86,7 +86,7 @@ Cached database row for an item to be sold online in JSON format, body example:
 ### Schedule
 
 Row ID from the db row as the member of the ZSET. Scores is timestamp,
-when the row should be copied to Redis next, body example:
+when the row should be copied to Redis next.
 
 ```json
 "{unix_timestamp}"  & "{row_id}"
@@ -96,7 +96,7 @@ when the row should be copied to Redis next, body example:
 ### Delay
 
 Row ID for the members, the score is how many seconds
-to wait between cache updates, body example:
+to wait between cache updates.
 
 ```json
 "{seconds_amount}" & "{row_id}"
@@ -105,7 +105,7 @@ to wait between cache updates, body example:
 
 ### Web page
 
-Cached html page
+Cached html page.
 
 ```txt
 "html-content"
@@ -113,7 +113,7 @@ Cached html page
 
 ### Viewed pages
 
-Top of most viewed items pages
+Top of most viewed items pages.
 
 ```json
 "{rating_score}" & "{item}"

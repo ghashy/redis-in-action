@@ -16,7 +16,7 @@
 
 ### Recent logs
 
-Set with logs
+Set with logs.
 
 ```json
 "{logline}" -> "{logline}"
@@ -24,7 +24,7 @@ Set with logs
 
 ### Common logs
 
-How often we get this log
+How often we get this log.
 
 ```json
 "{entriesd_count}" & "{message}"
