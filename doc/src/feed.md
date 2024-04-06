@@ -48,7 +48,7 @@ Sorted set of articles, ordered by time being posted, body example:
 Sorted set of articles, ordered by item scores, body example:
 
 ```json
-"123123.123 & article:{article_id}"
+"123123.123" & "article:{article_id}"
 ```
 
 ### Article votes
